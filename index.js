@@ -12,21 +12,22 @@ const CURRENT_FILE = path.join(DATA_DIR, "current.json");
 
 const IR = "IR";
 const GEO_BATCH_ENDPOINT = "http://ip-api.com/batch";
-const GLOBAL_SCAN_CAP = 600;
+const GLOBAL_SCAN_CAP = 2000;
 
 const TEXT_SOURCES = [
   { url: "https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt", name: "thespeedx" },
   { url: "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt", name: "monosans" },
-  { url: "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies_anonymous/http.txt", name: "monosans-anon" },
   { url: "https://raw.githubusercontent.com/ebrasha/abdal-proxy-hub/main/http-proxy-list-by-EbraSha.txt", name: "abdal" },
   { url: "https://raw.githubusercontent.com/ebrasha/abdal-proxy-hub/main/https-proxy-list-by-EbraSha.txt", name: "abdal" },
   { url: "https://raw.githubusercontent.com/clarketm/proxy-list/master/proxy-list-raw.txt", name: "clarketm" },
   { url: "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/http.txt", name: "shiftytr" },
   { url: "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/https.txt", name: "shiftytr" },
   { url: "https://raw.githubusercontent.com/roosterkid/openproxylist/main/HTTPS_RAW.txt", name: "roosterkid" },
-  { url: "https://raw.githubusercontent.com/mmpx12/proxy-list/master/http.txt", name: "mmpx12" },
-  { url: "https://raw.githubusercontent.com/mmpx12/proxy-list/master/https.txt", name: "mmpx12" },
   { url: "https://raw.githubusercontent.com/proxy4parsing/proxy-list/main/http.txt", name: "proxy4parsing" },
+  { url: "https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/http.txt", name: "zaeem" },
+  { url: "https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/https.txt", name: "zaeem" },
+  { url: "https://raw.githubusercontent.com/ALIILAPRO/Proxy/main/http.txt", name: "aliilapro" },
+  { url: "https://raw.githubusercontent.com/saisuiu/Lionkings-Http-Proxys-Proxies/main/free.txt", name: "lionkings" },
 ];
 
 const IRAN_FEED_SOURCES = [
@@ -160,7 +161,7 @@ async function geoCountries(ips) {
       });
       viaBatch = true;
     } catch {
-      for (let k = 0; k < chunk.length && k < 15; k++) {
+      for (let k = 0; k < chunk.length; k++) {
         const c = await countrySingle(chunk[k]);
         if (c) map.set(chunk[k], c);
       }
