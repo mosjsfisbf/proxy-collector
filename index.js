@@ -221,25 +221,38 @@ async function collect() {
   return out;
 }
 
-async function pingProxy(p, timeoutMs = 3500) {
-  const addr = "http://" + p.host + ":" + p.port;
+async function pingProxy(p, timeoutMs = 8000) {
+  const proxyUrl = "http://" + p.host + ":" + p.port;
+  const traceUrl = "https://www.cloudflare.com/cdn-cgi/trace";
+  
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
   const start = Date.now();
+  
   try {
-    const res = await fetch(addr, {
+    const res = await fetch(traceUrl, {
       method: "GET",
       signal: ctrl.signal,
       headers: { "user-agent": "proxy-collector/2.0" },
+      agent: new (require("https-proxy-agent").HttpsProxyAgent)(proxyUrl),
     });
     clearTimeout(t);
-    if (res.status >= 100 && res.status < 600) {
-      return { ...p, latency: Date.now() - start };
-    }
+    
+    if (!res.ok) return { ...p, latency: undefined };
+    
+    const text = await res.text();
+    const latency = Date.now() - start;
+    
+    const locMatch = text.match(/^loc=(.+)$/m);
+    const ipMatch = text.match(/^ip=(.+)$/m);
+    const exitCountry = locMatch ? locMatch[1].trim() : "";
+    const exitIp = ipMatch ? ipMatch[1].trim() : "";
+    
+    return { ...p, latency, exitCountry, exitIp };
   } catch {
     clearTimeout(t);
+    return { ...p, latency: undefined };
   }
-  return { ...p, latency: undefined };
 }
 
 function loadState() {
@@ -271,7 +284,9 @@ async function putCurrent() {
     const part = await Promise.all(slice.map((p) => pingProxy(p)));
     checked.push(...part);
   }
-  const alive = checked.filter((p) => p.latency !== undefined && p.latency !== null);
+  const alive = checked.filter((p) =>
+    p.latency !== undefined && p.latency !== null && p.exitCountry === IR
+  );
   alive.sort((a, b) => a.latency - b.latency);
   const dropped = proxies.length - alive.length;
 
