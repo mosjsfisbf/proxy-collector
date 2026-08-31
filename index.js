@@ -6,7 +6,7 @@ const path = require("path");
 const PORT = Number(process.env.PORT) || 8080;
 const PANEL_PASSWORD = process.env.PANEL_PASSWORD || "";
 const MAX_PROXIES = Math.max(1, Math.min(100, Number(process.env.MAX_PROXIES) || 25));
-const REFRESH_INTERVAL_MS = 15 * 60 * 1000;
+const CYCLE_REST_MS = Number(process.env.CYCLE_REST_MS) || 60 * 1000;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
 const CURRENT_FILE = path.join(DATA_DIR, "current.json");
 
@@ -17,8 +17,16 @@ const GLOBAL_SCAN_CAP = 600;
 const TEXT_SOURCES = [
   { url: "https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt", name: "thespeedx" },
   { url: "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt", name: "monosans" },
+  { url: "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies_anonymous/http.txt", name: "monosans-anon" },
   { url: "https://raw.githubusercontent.com/ebrasha/abdal-proxy-hub/main/http-proxy-list-by-EbraSha.txt", name: "abdal" },
   { url: "https://raw.githubusercontent.com/ebrasha/abdal-proxy-hub/main/https-proxy-list-by-EbraSha.txt", name: "abdal" },
+  { url: "https://raw.githubusercontent.com/clarketm/proxy-list/master/proxy-list-raw.txt", name: "clarketm" },
+  { url: "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/http.txt", name: "shiftytr" },
+  { url: "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/https.txt", name: "shiftytr" },
+  { url: "https://raw.githubusercontent.com/roosterkid/openproxylist/main/HTTPS_RAW.txt", name: "roosterkid" },
+  { url: "https://raw.githubusercontent.com/mmpx12/proxy-list/master/http.txt", name: "mmpx12" },
+  { url: "https://raw.githubusercontent.com/mmpx12/proxy-list/master/https.txt", name: "mmpx12" },
+  { url: "https://raw.githubusercontent.com/proxy4parsing/proxy-list/main/http.txt", name: "proxy4parsing" },
 ];
 
 const IRAN_FEED_SOURCES = [
@@ -27,7 +35,7 @@ const IRAN_FEED_SOURCES = [
 ];
 
 function geonodeUrls() {
-  return [1, 2].map(
+  return [1, 2, 3, 4].map(
     (page) =>
       "https://proxylist.geonode.com/api/proxy-list?limit=100&page=" +
       page +
@@ -373,7 +381,7 @@ const PANEL_HTML = `<!doctype html>
 
   <div id="app" class="hidden">
     <h1>پنل مدیریت پراکسی</h1>
-    <p class="sub">فقط پراکسی‌های ایرانی — نوسازی خودکار هر ۱۵ دقیقه</p>
+    <p class="sub">فقط پراکسی‌های ایرانی — تازه‌سازی مداوم</p>
     <div class="stats">
       <div class="stat"><div class="k">تعداد پایش‌شده</div><div class="v" id="count">—</div></div>
       <div class="stat"><div class="k">حذف شده (مرده)</div><div class="v" id="dropped">—</div></div>
@@ -526,15 +534,17 @@ app.listen(PORT, () => {
   console.log("data dir: " + DATA_DIR);
 });
 
-async function tick() {
-  try {
-    console.log("refresh cycle started:", new Date().toISOString());
-    const r = await putCurrent();
-    console.log("refresh done: alive=" + r.alive + " dropped=" + r.dropped);
-  } catch (e) {
-    console.error("refresh failed:", e.message);
+async function loop() {
+  while (true) {
+    try {
+      console.log("refresh cycle started:", new Date().toISOString());
+      const r = await putCurrent();
+      console.log("refresh done: alive=" + r.alive + " dropped=" + r.dropped);
+    } catch (e) {
+      console.error("refresh failed:", e.message);
+    }
+    await delay(CYCLE_REST_MS);
   }
 }
 
-tick();
-setInterval(tick, REFRESH_INTERVAL_MS);
+loop();
