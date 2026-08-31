@@ -174,7 +174,6 @@ async function collect() {
       seen.add(key);
       out.push(p);
     }
-    if (out.length >= MAX_PROXIES) return out.slice(0, MAX_PROXIES);
   }
 
   for (const src of IRAN_FEED_SOURCES) {
@@ -185,7 +184,6 @@ async function collect() {
       out.push(p);
     }
   }
-  if (out.length >= MAX_PROXIES) return out.slice(0, MAX_PROXIES);
 
   const raw = [];
   for (const src of TEXT_SOURCES) {
@@ -211,7 +209,7 @@ async function collect() {
     }
   }
 
-  return out.slice(0, MAX_PROXIES);
+  return out;
 }
 
 async function pingProxy(p, timeoutMs = 3500) {
@@ -265,6 +263,7 @@ async function putCurrent() {
     checked.push(...part);
   }
   const alive = checked.filter((p) => p.latency !== undefined && p.latency !== null);
+  alive.sort((a, b) => a.latency - b.latency);
   const dropped = proxies.length - alive.length;
 
   if (proxies.length === 0 && state.proxies.length > 0) {
