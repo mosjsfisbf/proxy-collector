@@ -1,0 +1,16 @@
+{
+  "name": "proxy-collector-railway",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Iranian proxy collector service — Railway edition",
+  "main": "index.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
